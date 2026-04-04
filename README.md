@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://i.imgur.com/us2XdMC.png" alt="Solana Faucet" width="80" />
+  <img src="https://i.imgur.com/us2XdMC.png" alt="Solana Faucet" width="250" />
 </p>
 
 <h1 align="center">Solana Faucet</h1>

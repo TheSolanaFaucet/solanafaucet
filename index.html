@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solana Faucet — Free SOL for Everyone</title>
+<meta name="author" content="-AragonCrypto">
+<meta name="description" content="Get free Solana. No catch. 0.001 SOL every 5 minutes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   TOKENS & BASE STYLES
+   ═══════════════════════════════════════════════ */
+:root {
+  --white: #ffffff;
+  --bg: #fafafa;
+  --bg-card: rgba(255, 255, 255, 0.7);
+  --ink: #111111;
+  --ink-2: #333333;
+  --ink-3: #666666;
+  --ink-4: #999999;
+  --ink-5: #cccccc;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-light: rgba(0, 0, 0, 0.04);
+  --sol-green: #14F195;
+  --sol-purple: #9945FF;
+  --green-muted: #0dba74;
+  --green-soft: #e8faf2;
+  --purple-soft: #f3edff;
+  --red: #ef4444;
+  --red-soft: #fef2f2;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 6px;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Outfit', -apple-system, sans-serif;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.03);
+  --shadow: 0 8px 24px rgba(0,0,0,0.05);
+  --shadow-lg: 0 24px 60px rgba(0,0,0,0.08);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --grid-color: rgba(0,0,0,0.025);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  position: relative;
+}
+
+::selection { background: var(--green-soft); color: var(--ink); }
+a { color: var(--green-muted); text-decoration: none; transition: color 0.2s; }
+a:hover { text-decoration: underline; }
+
+/* ═══ TOKEN BANNER ═══ */
+.token-banner {
+  background: rgba(17,17,17,0.95);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  color: var(--white);
+  text-align: center;
+  padding: 10px 48px 10px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  position: relative;
+  z-index: 200;
+  transition: margin-top 0.4s var(--ease), opacity 0.4s var(--ease);
+}
+
+.token-banner .banner-inner {
+  display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center;
+  animation: bannerSlide 0.6s var(--ease) both;
+}
+
+@keyframes bannerSlide {
+  from { opacity: 0; transform: translateY(-100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.token-banner .pulse {
+  width: 6px; height: 6px; background: var(--sol-green); border-radius: 50%;
+  animation: bannerPulse 2s ease-in-out infinite; flex-shrink: 0;
+}
+
+@keyframes bannerPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(20,241,149,0.4); }
+  50% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(20,241,149,0); }
+}
+
+.token-banner .tag {
+  font-family: var(--mono); font-size: 12px; font-weight: 500;
+  background: rgba(255,255,255,0.12); padding: 2px 8px; border-radius: 4px; color: var(--sol-green);
+}
+
+.token-banner a { color: var(--sol-green); text-decoration: underline; text-underline-offset: 2px; }
+
+.banner-close {
+  position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+  background: transparent; border: none; color: var(--ink-4); cursor: pointer;
+  padding: 4px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; transition: all 0.2s;
+}
+.banner-close:hover { color: var(--white); background: rgba(255,255,255,0.1); }
+.banner-close svg { width: 16px; height: 16px; }
+
+/* ═══ NAV ═══ */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(250,250,250,0.6); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border); height: 60px; display: flex; align-items: center;
+  padding: 0 clamp(20px, 4vw, 48px); transition: transform 0.35s var(--ease);
+}
+.nav.hidden { transform: translateY(-100%); }
+
+.nav-inner {
+  max-width: 1120px; margin: 0 auto; width: 100%; display: flex; align-items: center; justify-content: space-between;
+}
+
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); cursor: pointer; transition: opacity 0.2s; }
+.nav-logo:hover { opacity: 0.7; text-decoration: none; }
+
+.logo-mark {
+  width: 28px; height: 28px; border-radius: 7px; display: block; object-fit: cover;
+  transition: transform 0.3s var(--ease);
+}
+.nav-logo:hover .logo-mark { transform: rotate(-5deg) scale(1.05); }
+.logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.02em; }
+
+.nav-links { display: flex; align-items: center; gap: 2px; list-style: none; }
+.nav-links a {
+  padding: 6px 14px; font-size: 13px; color: var(--ink-3); border-radius: var(--radius-xs);
+  transition: all 0.2s; text-decoration: none; cursor: pointer; font-weight: 500;
+}
+.nav-links a:hover { background: rgba(0,0,0,0.04); color: var(--ink); text-decoration: none; }
+
+.nav-x {
+  display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; font-size: 13px;
+  color: var(--ink-4); border: 1px solid var(--border); border-radius: var(--radius-xs);
+  transition: all 0.2s; text-decoration: none; margin-left: 4px; font-weight: 500;
+}
+.nav-x:hover { border-color: var(--ink-5); color: var(--ink-2); text-decoration: none; }
+.nav-x svg { width: 12px; height: 12px; }
+
+/* ═══ PAGES ═══ */
+.page { display: none; position: relative; z-index: 1; }
+.page.active { display: block; animation: pageIn 0.5s var(--ease); }
+@keyframes pageIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+
+.container { max-width: 1120px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+.container-sm { max-width: 600px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+
+/* ═══ SCROLL REVEAL ═══ */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-d1 { transition-delay: 0.06s; }
+.reveal-d2 { transition-delay: 0.12s; }
+.reveal-d3 { transition-delay: 0.18s; }
+.reveal-d4 { transition-delay: 0.24s; }
+
+/* ═══ HERO & AMBIENT FOG ═══ */
+.hero { position: relative; padding: 120px 0 80px; text-align: center; overflow: hidden; }
+
+.ambient-bg {
+  position: absolute; inset: 0; z-index: 0;
+  overflow: hidden; pointer-events: none;
+  perspective: 1000px;
+}
+
+.ambient-orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(100px); opacity: 0.15;
+  will-change: transform;
+  animation: floatOrb 25s infinite alternate var(--ease);
+}
+
+.ambient-orb.sol-purple {
+  background: rgba(153, 69, 255, 0.6);
+  width: 50vw; height: 50vw; top: -10%; left: -10%;
+}
+
+.ambient-orb.sol-green {
+  background: rgba(20, 241, 149, 0.6);
+  width: 45vw; height: 45vw; bottom: 10%; right: -10%;
+  animation-delay: -5s; animation-direction: alternate-reverse;
+}
+
+.ambient-orb.sol-light {
+  background: rgba(255, 255, 255, 1);
+  width: 60vw; height: 60vw; top: 10%; left: 20%;
+  filter: blur(120px); opacity: 0.3;
+  animation-duration: 30s;
+}
+
+@keyframes floatOrb {
+  0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  50% { transform: translate(6%, 8%) scale(1.1) rotate(5deg); }
+  100% { transform: translate(-4%, -6%) scale(0.95) rotate(-3deg); }
+}
+
+.curved-grid-wrapper {
+  position: absolute; inset: 0; perspective: 800px; overflow: hidden; opacity: 0.6;
+  mask-image: radial-gradient(ellipse at top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 60%);
+  -webkit-mask-image: radial-gradient(ellipse at top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 60%);
+}
+
+.curved-grid {
+  position: absolute; width: 200vw; height: 200vh; left: -50vw; top: -20vh;
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 60px 60px;
+  transform: rotateX(65deg) translateY(-100px) translateZ(-200px);
+  animation: gridFlow 40s linear infinite;
+  transform-style: preserve-3d;
+}
+
+@keyframes gridFlow {
+  0% { transform: rotateX(65deg) translateY(0) translateZ(-200px); }
+  100% { transform: rotateX(65deg) translateY(60px) translateZ(-200px); }
+}
+
+.hero .container { position: relative; z-index: 1; }
+
+.hero-label {
+  font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--ink-4); margin-bottom: 24px; font-weight: 600;
+}
+
+.hero h1 { font-size: clamp(48px, 8vw, 84px); font-weight: 700; line-height: 1.05; letter-spacing: -0.04em; margin-bottom: 24px; color: var(--ink); }
+.hero h1 .gradient-text {
+  background: linear-gradient(135deg, var(--sol-purple) 0%, var(--sol-green) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.hero-sub { font-size: clamp(16px, 2vw, 20px); color: var(--ink-3); max-width: 480px; margin: 0 auto 40px; font-weight: 400; line-height: 1.6; }
+
+.hero-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+  padding: 14px 32px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600;
+  font-family: var(--sans); cursor: pointer; border: none; transition: all 0.3s var(--ease);
+  text-decoration: none; letter-spacing: -0.01em; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.btn-primary { background: var(--ink); color: var(--white); box-shadow: 0 4px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.1); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15); text-decoration: none; color: var(--white); }
+.btn-ghost { background: rgba(255,255,255,0.5); color: var(--ink-2); border: 1px solid var(--border); }
+.btn-ghost:hover { background: rgba(255,255,255,0.8); border-color: var(--ink-4); transform: translateY(-1px); text-decoration: none; }
+
+/* ═══ STATS ROW ═══ */
+.stats-row {
+  display: flex; justify-content: center; gap: 64px; padding: 48px 0;
+  border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); margin-bottom: 80px;
+}
+.stat { text-align: center; }
+.stat-value { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; margin-bottom: 6px; color: var(--ink); }
+.stat-value.counting { font-family: var(--mono); }
+.stat-label { font-size: 12px; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+
+/* ═══ GLASS CARDS / GENERAL ═══ */
+.glass-panel {
+  background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.4); box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--border-light);
+}
+
+/* ═══ VIDEO SECTION ═══ */
+.video-section { padding: 0 0 100px; position: relative; }
+.video-container {
+  background: var(--ink); border-radius: var(--radius); overflow: hidden;
+  aspect-ratio: 16/9; max-width: 860px; margin: 0 auto; box-shadow: var(--shadow-lg); position: relative;
+}
+.video-container iframe { width: 100%; height: 100%; display: block; border: none; }
+.video-caption { text-align: center; margin-top: 16px; font-size: 14px; color: var(--ink-4); font-weight: 400; }
+
+/* ═══ FAUCET SECTION ═══ */
+.section { padding: 0 0 100px; position: relative; }
+.section-header { text-align: center; margin-bottom: 48px; }
+.section-label { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-4); margin-bottom: 10px; font-weight: 600; }
+.section-title { font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.15; }
+.section-sub { font-size: 16px; color: var(--ink-3); margin-top: 12px; font-weight: 400; }
+
+.faucet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.faucet-card { border-radius: var(--radius); padding: 40px; cursor: pointer; transition: all 0.4s var(--ease); position: relative; overflow: hidden; text-decoration: none; color: var(--ink); display: flex; flex-direction: column; }
+.faucet-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%); opacity: 0; transition: opacity 0.4s var(--ease); pointer-events: none; }
+.faucet-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--sol-green), var(--sol-purple)); opacity: 0; transition: opacity 0.4s; }
+.faucet-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); text-decoration: none; }
+.faucet-card:hover::before, .faucet-card:hover::after { opacity: 1; }
+
+.fc-badge { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 6px; display: inline-block; margin-bottom: 24px; font-weight: 600; width: fit-content; }
+.fc-badge.modern { background: var(--green-soft); color: var(--green-muted); }
+.fc-badge.retro { background: #fff7ed; color: #c2410c; }
+.fc-title { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+.fc-desc { font-size: 15px; color: var(--ink-3); line-height: 1.6; flex: 1; font-weight: 400; }
+.fc-cta { margin-top: 24px; font-size: 14px; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+.fc-cta .arrow { transition: transform 0.3s var(--ease); display: inline-block; }
+.faucet-card:hover .arrow { transform: translateX(4px); }
+
+/* ═══ HOW IT WORKS ═══ */
+.steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.step-card { border-radius: var(--radius); padding: 36px; transition: all 0.4s var(--ease); }
+.step-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.step-num { font-family: var(--mono); font-size: 12px; color: var(--ink-4); font-weight: 600; margin-bottom: 16px; letter-spacing: 0.06em; }
+.step-card h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 8px; }
+.step-card p { font-size: 15px; color: var(--ink-3); line-height: 1.6; font-weight: 400; }
+.step-card a { display: inline-flex; align-items: center; gap: 4px; margin-top: 16px; font-size: 14px; font-weight: 600; }
+
+/* ═══ ECOSYSTEM SECTION ═══ */
+.eco-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.eco-card { border-radius: var(--radius); padding: 28px 24px; text-align: center; transition: all 0.3s var(--ease); text-decoration: none; color: var(--ink); }
+.eco-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); text-decoration: none; }
+.eco-icon { width: 48px; height: 48px; margin: 0 auto 16px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; background: rgba(255,255,255,0.8); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
+.eco-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.eco-desc { font-size: 13px; color: var(--ink-4); font-weight: 400; }
+
+/* ═══ TOKEN SECTION ═══ */
+.token-section { padding: 0 0 100px; position: relative; }
+.token-box { border-radius: var(--radius); padding: 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; overflow: hidden; position: relative; }
+.token-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--sol-green), var(--sol-purple)); }
+.token-info h2 { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 16px; }
+.token-info p { font-size: 16px; color: var(--ink-3); line-height: 1.7; margin-bottom: 16px; font-weight: 400; }
+.token-info .token-tag { font-family: var(--mono); font-size: 12px; background: rgba(0,0,0,0.04); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-xs); display: inline-block; color: var(--ink-2); margin-bottom: 20px; font-weight: 600; }
+.chart-container { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm); min-height: 400px; display: block; overflow: hidden; width: 100%; }
+
+/* ═══ CLAIM PAGE (MODERN) ═══ */
+.claim-page { padding: 64px 0 100px; }
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink-4); cursor: pointer; transition: all 0.2s; padding: 6px 12px 6px 8px; border-radius: var(--radius-xs); margin-bottom: 32px; margin-left: -8px; font-weight: 500; }
+.back-link:hover { color: var(--ink); background: rgba(0,0,0,0.04); text-decoration: none; }
+.claim-page h1 { font-size: clamp(32px, 5vw, 44px); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px; }
+.claim-page .page-sub { color: var(--ink-3); font-size: 16px; margin-bottom: 40px; font-weight: 400; }
+.claim-box { border-radius: var(--radius); padding: 48px; box-shadow: var(--shadow-lg); max-width: 540px; position: relative; overflow: hidden; margin-bottom: 24px; }
+.claim-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--sol-green), var(--sol-purple)); }
+.amount-display { display: flex; align-items: baseline; gap: 8px; margin-bottom: 32px; padding: 20px 24px; background: rgba(255,255,255,0.6); border-radius: var(--radius-sm); border: 1px solid var(--border-light); }
+.amount-val { font-size: 36px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); }
+.amount-unit { font-size: 16px; color: var(--ink-3); font-weight: 600; }
+.amount-label { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.form-group { margin-bottom: 20px; }
+.form-label { display: block; font-size: 14px; color: var(--ink-2); font-weight: 600; margin-bottom: 8px; }
+.form-input { width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; font-family: var(--mono); color: var(--ink); background: rgba(255,255,255,0.8); outline: none; transition: all 0.3s var(--ease); box-shadow: inset 0 2px 4px rgba(0,0,0,0.01); }
+.form-input::placeholder { font-family: var(--sans); color: var(--ink-5); font-size: 14px; }
+.form-input:focus { border-color: var(--sol-purple); box-shadow: 0 0 0 4px rgba(153,69,255,0.1); background: #fff; }
+
+/* ═══ EMAIL VERIFICATION SECTION ═══ */
+.email-verify { position: relative; margin-bottom: 24px; }
+.email-verify.locked { opacity: 0.6; pointer-events: none; }
+.email-verify.hidden { display: none; }
+.coming-soon-overlay {
+  position: absolute; inset: -12px; z-index: 10;
+  background: rgba(250, 250, 250, 0.5);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: auto; cursor: not-allowed;
+}
+.coming-soon-overlay span {
+  font-size: 24px; font-weight: 700; font-family: var(--sans); letter-spacing: -0.02em;
+  color: rgba(17,17,17,0); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(10px) scale(0.95);
+}
+.coming-soon-overlay:hover span { color: rgba(17,17,17,0.75); transform: translateY(0) scale(1); }
+
+.ev-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.ev-row .form-input { flex: 1; }
+.ev-send { padding: 14px 20px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: var(--sans); cursor: pointer; background: var(--white); color: var(--ink); transition: all 0.2s; white-space: nowrap; }
+.ev-send:hover { background: var(--bg); border-color: var(--ink-4); }
+.ev-send:disabled { opacity: 0.5; cursor: not-allowed; }
+.ev-code-row { display: flex; gap: 10px; align-items: center; }
+.ev-code-row .form-input { letter-spacing: 6px; text-align: center; font-size: 18px; font-weight: 500; }
+.ev-status { font-size: 12px; margin-top: 6px; min-height: 18px; }
+.ev-status.ok { color: var(--green-muted); }
+.ev-status.err { color: var(--red); }
+
+/* ═══ CAPTCHA TRIGGER UI (Modern) ═══ */
+.captcha-trigger-modern { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: rgba(255,255,255,0.8); cursor: pointer; transition: all 0.3s var(--ease); box-shadow: inset 0 2px 4px rgba(0,0,0,0.01); }
+.captcha-trigger-modern:hover { border-color: var(--ink-4); background: #fff; }
+.captcha-trigger-modern.verified { background: var(--green-soft); border-color: var(--sol-green); cursor: default; }
+.captcha-trigger-modern .ct-text { font-size: 15px; font-weight: 500; color: var(--ink); }
+.captcha-trigger-modern.verified .ct-text { color: #0b5015; font-weight: 600; }
+
+/* ═══ CAPTCHA MODAL (Modern) ═══ */
+.captcha-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 9999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s var(--ease); }
+.captcha-overlay.active { opacity: 1; pointer-events: auto; }
+.c-modal-modern { background: var(--white); padding: 32px; border-radius: var(--radius); width: 90%; max-width: 420px; box-shadow: var(--shadow-lg); transform: translateY(20px); transition: transform 0.4s var(--ease); text-align: center; }
+.captcha-overlay.active .c-modal-modern { transform: translateY(0); }
+.c-title-modern { font-size: 20px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+.c-inst-modern { color: var(--ink-3); margin-bottom: 24px; font-size: 15px; }
+.c-dropzone-modern { width: 100px; height: 100px; margin: 0 auto 32px; border: 2px dashed var(--sol-purple); border-radius: 20px; display: flex; align-items: center; justify-content: center; background: rgba(153,69,255,0.05); transition: all 0.3s var(--ease); font-weight: 600; color: var(--sol-purple); font-size: 14px; }
+.c-dropzone-modern.drag-over { background: rgba(153,69,255,0.15); transform: scale(1.05); border-color: var(--sol-purple); }
+.c-options-grid { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.c-draggable { padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 30px; font-size: 14px; font-weight: 600; cursor: grab; user-select: none; transition: all 0.2s var(--ease); box-shadow: var(--shadow-sm); }
+.c-draggable:active { cursor: grabbing; transform: scale(0.95); }
+.c-draggable.selected-tap { background: var(--ink); color: var(--white); border-color: var(--ink); }
+
+.btn-claim { width: 100%; padding: 16px; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; font-family: var(--sans); cursor: pointer; border: none; background: var(--ink); color: var(--white); transition: all 0.3s var(--ease); letter-spacing: -0.01em; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; overflow: hidden; }
+.btn-claim:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+.btn-claim:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+/* ═══ ANIMATED COOLDOWN BUTTON ═══ */
+.btn-claim.is-cooldown { background: var(--ink-4); color: var(--white); cursor: not-allowed; box-shadow: none; transform: none; animation: cooldownPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+@keyframes cooldownPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* ═══ FAUCET DISABLED OVERLAY ═══ */
+.faucet-disabled-overlay { position: absolute; inset: 0; z-index: 20; background: rgba(250, 250, 250, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: var(--radius); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px; }
+.faucet-disabled-overlay .disabled-icon { width: 56px; height: 56px; border-radius: 50%; background: var(--red-soft); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+.faucet-disabled-overlay .disabled-icon svg { width: 28px; height: 28px; color: var(--red); }
+.faucet-disabled-overlay h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+.faucet-disabled-overlay p { font-size: 14px; color: var(--ink-3); max-width: 320px; line-height: 1.6; }
+.faucet-disabled-overlay a { margin-top: 16px; }
+
+.help-note { margin-top: 32px; font-size: 14px; color: var(--ink-4); line-height: 1.7; padding: 20px 24px; border-radius: var(--radius-sm); }
+.help-note strong { color: var(--ink-2); font-weight: 600; }
+
+/* ═══ NOTIFICATION TOASTS ═══ */
+.toast-container { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+.toast { background: rgba(17,17,17,0.9); backdrop-filter: blur(10px); color: var(--white); padding: 14px 28px; border-radius: 30px; font-weight: 500; font-size: 14px; text-align: center; box-shadow: 0 16px 40px rgba(0,0,0,0.15); animation: toastIn 0.5s var(--ease-bounce) forwards; font-family: var(--sans); border: 1px solid rgba(255,255,255,0.1); max-width: 480px; }
+.toast.error { background: rgba(239, 68, 68, 0.95); }
+.toast.success { background: linear-gradient(135deg, var(--sol-green), #0dba74); color: #111; font-weight: 600; }
+.toast.fade-out { animation: toastOut 0.4s var(--ease) forwards; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes toastOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(15px) scale(0.95); } }
+
+/* ═══ CONFETTI ═══ */
+.confetti-piece { position: fixed; top: -20px; z-index: 99999; width: 10px; height: 22px; border-radius: 4px; animation: fall linear forwards; pointer-events: none; }
+@keyframes fall { 0% { transform: translateY(0) translateX(0) rotate(0deg) scale(1); opacity: 1; } 100% { transform: translateY(110vh) translateX(var(--drift, 0px)) rotate(720deg) scale(0.5); opacity: 0; } }
+
+/* ═══ ORIGINAL FAUCET PAGE ═══ */
+.original-bg { min-height: calc(100vh - 60px); padding: 48px 0 0; }
+.original-wrapper { width: 90%; max-width: 1000px; margin: 0 auto; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); overflow: hidden; }
+.oldf { font-family: Arial, Helvetica, sans-serif; color: #333; padding: 0; background: #fff; }
+.oldf .title { margin-left: 200px; padding-top: 32px; }
+.oldf .title h1 { font-size: 48px; font-weight: bold; margin: 0; background: linear-gradient(90deg, #9945FF, #14F195); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.oldf .leftNav { float: left; width: 170px; margin-left: 24px; margin-top: 16px; padding-top: 10px; }
+.oldf .leftNav p { font-size: 13px; font-weight: bold; color: #555; margin-bottom: 16px; }
+.oldf .leftNav ul { list-style: none; padding: 0; margin: 0; }
+.oldf .leftNav ul li { margin-bottom: 4px; color: #777; font-weight: bold; font-size: 13px; }
+.oldf .leftNav a { color: #9945FF; text-decoration: none; }
+.oldf .leftNav a:hover { text-decoration: underline; }
+.oldf .main-old { margin-left: 200px; padding: 16px 24px 48px; max-width: 720px; position: relative; }
+.oldf .main-old h2 { font-size: 17px; font-weight: bold; color: #222; margin-top: 24px; margin-bottom: 10px; }
+.oldf .main-old p { font-size: 13px; line-height: 1.5; color: #333; margin-bottom: 10px; }
+.oldf .main-old code { background: #f4f4f4; padding: 2px 4px; font-size: 12px; word-wrap: break-word; }
+.oldf .form-row-old { margin-top: 16px; font-size: 13px; }
+.oldf .form-row-old label { font-size: 13px; }
+.oldf #old_address { width: 260px; margin-left: 4px; margin-right: 4px; padding: 4px; border: 1px solid #aaa; font-size: 13px; }
+
+/* Old Faucet Email Verification overlay */
+.email-verify-old { border: 2px solid #c0392b; background: #fef2f2; padding: 12px; margin: 16px 0; max-width: 480px; position: relative; }
+.email-verify-old.locked-old { opacity: 0.7; pointer-events: none; }
+.email-verify-old.hidden { display: none; }
+.coming-soon-overlay-old { position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px; z-index: 10; background: rgba(255, 255, 255, 0.6); display: flex; align-items: center; justify-content: center; pointer-events: auto; cursor: not-allowed; border: 2px dashed #ccc; }
+.coming-soon-overlay-old span { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; color: rgba(192,57,43,0); transition: color 0.3s; }
+.coming-soon-overlay-old:hover span { color: rgba(192,57,43,0.9); }
+.oldf .email-verify-old label { font-size: 12px; font-weight: bold; color: #555; display: block; margin-bottom: 6px; }
+.oldf .email-verify-old input[type="email"], .oldf .email-verify-old input[type="text"] { padding: 4px 6px; border: 1px solid #aaa; font-size: 12px; width: 200px; margin-right: 4px; }
+.oldf .email-verify-old button { padding: 4px 10px; font-size: 12px; cursor: pointer; border: 1px solid #999; background: #f5f5f5; }
+.oldf .email-verify-old button:hover { background: #e0e0e0; }
+.oldf .email-verify-old .ev-old-status { font-size: 11px; margin-top: 6px; }
+.oldf .email-verify-old .ev-old-status.ok { color: #2e7d32; }
+.oldf .email-verify-old .ev-old-status.err { color: #c0392b; }
+.oldf .email-verify-old .ev-old-timer { font-size: 11px; color: #888; }
+.oldf .success-box-old { display: none; background: #e2f3e5; border: 1px solid #4caf50; color: #0b5015; padding: 16px; margin-top: 20px; font-size: 13px; max-width: 480px; }
+.oldf .success-box-old h3 { margin: 0 0 8px; font-size: 15px; }
+.oldf .success-box-old a { color: #0b5015; text-decoration: underline; cursor: pointer; }
+.oldf .footer-old { clear: both; margin-left: 200px; margin-top: 48px; padding-bottom: 32px; font-size: 11px; color: #888; }
+.oldf .footer-old a { color: #888; }
+.retro-note { width: 90%; max-width: 1000px; margin: 40px auto 80px; padding: 40px; border-radius: var(--radius); text-align: center; }
+.retro-note h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 12px; }
+.retro-note p { color: var(--ink-3); font-size: 15px; line-height: 1.7; margin-bottom: 12px; font-weight: 400; max-width: 600px; margin-inline: auto; }
+.retro-note strong { color: var(--ink-2); font-weight: 600; }
+
+/* ═══ CAPTCHA TRIGGER UI (Old) ═══ */
+.captcha-trigger-old { margin-top: 10px; margin-bottom: 16px; display: flex; gap: 10px; align-items: center; font-size: 13px; }
+.oldf button.o-btn { padding: 4px 12px; background: #ddd; border: 2px solid; border-color: #fff #888 #888 #fff; cursor: pointer; font-size: 13px; color: #000; font-family: Arial, sans-serif; }
+.oldf button.o-btn:active { border-color: #888 #fff #fff #888; }
+
+/* ═══ CAPTCHA MODAL (Old) ═══ */
+.c-modal-old { background: #c0c0c0; border: 2px solid; border-color: #fff #555 #555 #fff; width: 90%; max-width: 400px; font-family: 'MS Sans Serif', Arial, sans-serif; position: relative; }
+.c-old-header { background: #000080; color: #fff; font-weight: bold; padding: 4px 8px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+.c-old-close { background: #c0c0c0; border: 1px solid; border-color: #fff #555 #555 #fff; color: #000; font-weight: bold; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 10px; padding: 0; line-height: 1;}
+.c-old-close:active { border-color: #555 #fff #fff #555; }
+.c-old-body { padding: 16px; text-align: center; font-size: 13px; color: #000; }
+.c-dropzone-old { width: 80px; height: 80px; border: 2px dotted #555; margin: 16px auto; display: flex; align-items: center; justify-content: center; background: #fff; color: #555; font-size: 12px; font-weight: bold; }
+.c-dropzone-old.drag-over { background: #e0e0e0; }
+.c-old-draggable { display: inline-block; padding: 4px 8px; background: #c0c0c0; border: 2px solid; border-color: #fff #555 #555 #fff; margin: 4px; cursor: pointer; font-size: 12px; user-select: none; color: #000; }
+.c-old-draggable:active { border-color: #555 #fff #fff #555; }
+.c-old-draggable.selected-tap { background: #000080; color: #fff; }
+
+/* ═══ MARQUEE ═══ */
+.marquee-wrap { overflow: hidden; padding: 24px 0; border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); margin-bottom: 80px; background: rgba(255,255,255,0.4); }
+.marquee-track { display: flex; gap: 64px; width: max-content; animation: marquee 35s linear infinite; }
+@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+.marquee-item { font-family: var(--mono); font-size: 13px; color: var(--ink-4); white-space: nowrap; letter-spacing: 0.04em; display: flex; align-items: center; gap: 12px; font-weight: 500; }
+.marquee-dot { width: 5px; height: 5px; background: var(--ink-5); border-radius: 50%; flex-shrink: 0; }
+
+/* ═══ FOOTER ═══ */
+footer { border-top: 1px solid var(--border-light); padding: 32px 0; position: relative; z-index: 1; background: rgba(250,250,250,0.8); }
+.footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--ink-4); }
+.footer-left { display: flex; align-items: center; gap: 10px; font-weight: 500;}
+.footer-left .mark { width: 24px; height: 24px; border-radius: 6px; display: block; object-fit: cover; }
+.footer-right { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.footer-right a { color: var(--ink-4); transition: color 0.2s; font-weight: 500;}
+.footer-right a:hover { color: var(--ink-2); }
+
+/* ═══ INTERACTIVE COUNTER ═══ */
+.live-counter { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 13px; padding: 8px 16px; background: rgba(255,255,255,0.6); border: 1px solid var(--border); border-radius: 20px; color: var(--ink-3); font-weight: 500; box-shadow: var(--shadow-sm); }
+.live-counter .dot { width: 6px; height: 6px; background: var(--sol-green); border-radius: 50%; animation: livePulse 2s ease-in-out infinite; }
+@keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 768px) {
+  .faucet-grid { grid-template-columns: 1fr; }
+  .steps-grid { grid-template-columns: 1fr; }
+  .eco-grid { grid-template-columns: 1fr 1fr; }
+  .stats-row { gap: 32px; flex-wrap: wrap; }
+  .token-box { grid-template-columns: 1fr; gap: 32px; padding: 40px 24px; }
+  .claim-box { padding: 32px 24px; }
+  .nav-links { display: none; }
+  .oldf .leftNav { float: none; width: auto; margin: 16px 24px; padding-top: 0; }
+  .oldf .leftNav img { display: none; }
+  .oldf .title { margin-left: 24px; }
+  .oldf .title h1 { font-size: 36px; }
+  .oldf .main-old { margin-left: 24px; margin-right: 24px; }
+  .oldf .footer-old { margin-left: 24px; }
+  .original-wrapper { width: 96%; }
+  .video-container { border-radius: var(--radius-sm); }
+}
+@media (max-width: 480px) {
+  .eco-grid { grid-template-columns: 1fr; }
+  .stats-row { gap: 24px; }
+  .stat-value { font-size: 28px; }
+  .hero h1 { font-size: 40px; }
+}
+  
+  /* ═══ CAPTCHA VERIFY BUTTONS FIX ═══ */
+
+/* Modern Captcha Verify Button */
+#cSubmitModern {
+  margin-top: 24px !important;
+  width: 100% !important;
+  padding: 14px 32px !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  font-family: var(--sans) !important;
+  border: none !important;
+  transition: all 0.3s var(--ease) !important;
+  display: block !important;
+}
+
+#cSubmitModern:disabled {
+  background: #e5e5e5 !important;
+  color: #999999 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+#cSubmitModern:not(:disabled) {
+  background: var(--ink) !important;
+  color: var(--white) !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+#cSubmitModern:not(:disabled):hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
+}
+
+/* Retro / Old Captcha Verify Button */
+#cSubmitOld {
+  margin-top: 12px !important;
+  width: 100% !important;
+  padding: 6px 16px !important;
+  background: #c0c0c0 !important;
+  border: 2px solid !important;
+  border-color: #ffffff #555555 #555555 #ffffff !important;
+  font-size: 13px !important;
+  color: #000000 !important;
+  font-family: 'MS Sans Serif', Arial, sans-serif !important;
+  font-weight: bold !important;
+  outline: none !important;
+}
+
+#cSubmitOld:disabled {
+  color: #888888 !important;
+  text-shadow: 1px 1px 0px #ffffff !important;
+  cursor: not-allowed !important;
+}
+
+#cSubmitOld:not(:disabled) {
+  cursor: pointer !important;
+}
+
+#cSubmitOld:not(:disabled):active {
+  border-color: #555555 #ffffff #ffffff #555555 !important;
+  padding: 7px 15px 5px 17px !important; /* Perfect Windows 95 click indent */
+}
+  
+</style>
+</head>
+<body>
+
+<!-- NOTIFICATIONS CONTAINER -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- TOKEN BANNER -->
+<div class="token-banner" id="tokenBanner">
+  <div class="banner-inner" id="bannerInner">
+    <span class="pulse"></span>
+    <span class="tag">$FAUCET</span>
+    <span id="bannerText">The $Faucet Token has not been launched yet.</span>
+    <a id="bannerLink" href="https://x.com/TheSolanaFaucet" target="_blank">Follow for updates</a>
+  </div>
+  <button class="banner-close" onclick="closeBanner()" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+  </button>
+</div>
+
+<!-- NAV -->
+<nav class="nav" id="mainNav">
+  <div class="nav-inner">
+    <a class="nav-logo" onclick="go('home')">
+      <img src="static/faucet-logo.png" alt="Faucet Logo" class="logo-mark" onerror="this.style.display='none'">
+      <span class="logo-text">Solana Faucet</span>
+    </a>
+    <ul class="nav-links">
+      <li><a onclick="go('home')">Home</a></li>
+      <li><a onclick="go('modern')">Modern Faucet</a></li>
+      <li><a onclick="go('original')">Original Faucet</a></li>
+      <li>
+        <a href="https://x.com/TheSolanaFaucet" target="_blank" class="nav-x">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          @TheSolanaFaucet
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+
+<!-- ══════════════════ HOME ══════════════════ -->
+<div class="page active" id="page-home">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="ambient-bg">
+      <div class="curved-grid-wrapper"><div class="curved-grid"></div></div>
+      <div class="ambient-orb sol-purple"></div>
+      <div class="ambient-orb sol-green"></div>
+      <div class="ambient-orb sol-light"></div>
+    </div>
+    <div class="container">
+      <p class="hero-label reveal">Free Solana for everyone</p>
+      <h1 class="reveal reveal-d1">Your first<br><span class="gradient-text">Solana</span> is free.</h1>
+      <p class="hero-sub reveal reveal-d2" id="heroSub">0.001 SOL, every 5 minutes. No sign-up, no cost. Just paste your wallet and claim.</p>
+      <div class="hero-actions reveal reveal-d3">
+        <a class="btn btn-primary" onclick="go('modern')">Claim free SOL</a>
+        <a class="btn btn-ghost" onclick="scrollToToken()">About $FAUCET</a>
+      </div>
+      <div style="margin-top: 36px;" class="reveal reveal-d4">
+        <div class="live-counter">
+          <span class="dot"></span>
+          <span id="liveClaimCount">0</span> claims served
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee-wrap">
+    <div class="marquee-track" id="marqueeTrack">
+      <span class="marquee-item"><span class="marquee-dot"></span><span class="mq-amount">0.001</span> SOL PER CLAIM</span>
+      <span class="marquee-item"><span class="marquee-dot"></span><span class="mq-cooldown">5</span> MINUTE COOLDOWN</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>FUNDED BY $FAUCET VOLUME</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>COMMUNITY DRIVEN</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>SOLANA MAINNET</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>NO SIGN-UP REQUIRED</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>OPEN SOURCE</span>
+      <span class="marquee-item"><span class="marquee-dot"></span><span class="mq-amount">0.001</span> SOL PER CLAIM</span>
+      <span class="marquee-item"><span class="marquee-dot"></span><span class="mq-cooldown">5</span> MINUTE COOLDOWN</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>FUNDED BY $FAUCET VOLUME</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>COMMUNITY DRIVEN</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>SOLANA MAINNET</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>NO SIGN-UP REQUIRED</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>OPEN SOURCE</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <section class="section">
+    <div class="container">
+      <div class="stats-row reveal">
+        <div class="stat"><div class="stat-value counting" id="stat-claims">0</div><div class="stat-label">Claims</div></div>
+        <div class="stat"><div class="stat-value counting" id="stat-sol">0</div><div class="stat-label">SOL distributed</div></div>
+        <div class="stat"><div class="stat-value" id="stat-cooldown">5min</div><div class="stat-label">Cooldown</div></div>
+        <div class="stat"><div class="stat-value" id="stat-balance">0</div><div class="stat-label">SOL available</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIDEO -->
+  <section class="video-section">
+    <div class="container">
+      <div class="section-header reveal">
+        <p class="section-label">Watch</p>
+        <h2 class="section-title">What is Solana?</h2>
+      </div>
+      <div class="video-container reveal reveal-d1">
+        <iframe src="https://www.youtube.com/embed/GZ-bYOCMfmE?si=Qfid2VXKn1ETTfpd&start=34&autoplay=1&mute=1&loop=1&playlist=GZ-bYOCMfmE&controls=1&modestbranding=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <p class="video-caption reveal reveal-d2">60 seconds. That's all you need to understand Solana.</p>
+    </div>
+  </section>
+
+  <!-- CHOOSE FAUCET -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header reveal">
+        <p class="section-label">Faucet</p>
+        <h2 class="section-title">Choose your style</h2>
+        <p class="section-sub">Same SOL. Two interfaces.</p>
+      </div>
+      <div class="faucet-grid">
+        <div class="faucet-card glass-panel reveal reveal-d1" onclick="go('modern')">
+          <span class="fc-badge modern">2025</span>
+          <div class="fc-title">Modern Faucet</div>
+          <div class="fc-desc">Clean interface. Paste your address, claim. Built for everyone.</div>
+          <div class="fc-cta">Open faucet <span class="arrow">&rarr;</span></div>
+        </div>
+        <div class="faucet-card glass-panel reveal reveal-d2" onclick="go('original')">
+          <span class="fc-badge retro">2010</span>
+          <div class="fc-title">Original Faucet</div>
+          <div class="fc-desc">A recreation of the Bitcoin Faucet that gave away billions. Same layout, same spirit.</div>
+          <div class="fc-cta">Open faucet <span class="arrow">&rarr;</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header reveal">
+        <p class="section-label">New to crypto?</p>
+        <h2 class="section-title">Three steps. Two minutes.</h2>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card glass-panel reveal reveal-d1">
+          <div class="step-num">01</div><h3>Get a wallet</h3><p>Download Phantom or Solflare. Free. Takes 30 seconds.</p><a href="https://phantom.app" target="_blank">phantom.app &rarr;</a>
+        </div>
+        <div class="step-card glass-panel reveal reveal-d2">
+          <div class="step-num">02</div><h3>Copy your address</h3><p>Your wallet gives you a Solana address. Tap to copy it.</p>
+        </div>
+        <div class="step-card glass-panel reveal reveal-d3">
+          <div class="step-num">03</div><h3>Claim your SOL</h3><p>Paste your address here and claim. Arrives in seconds.</p><a onclick="go('modern')" style="cursor:pointer">Claim now &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ECOSYSTEM -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header reveal">
+        <p class="section-label">Explore Solana</p>
+        <h2 class="section-title">Where your SOL can go</h2>
+        <p class="section-sub">Solana has one of the fastest growing ecosystems in crypto.</p>
+      </div>
+      <div class="eco-grid">
+        <a class="eco-card glass-panel reveal reveal-d1" href="https://jup.ag" target="_blank"><div class="eco-icon">J</div><div class="eco-name">Jupiter</div><div class="eco-desc">Swap tokens</div></a>
+        <a class="eco-card glass-panel reveal reveal-d2" href="https://raydium.io" target="_blank"><div class="eco-icon">R</div><div class="eco-name">Raydium</div><div class="eco-desc">Liquidity pools</div></a>
+        <a class="eco-card glass-panel reveal reveal-d3" href="https://magiceden.io" target="_blank"><div class="eco-icon">M</div><div class="eco-name">Magic Eden</div><div class="eco-desc">NFT marketplace</div></a>
+        <a class="eco-card glass-panel reveal reveal-d4" href="https://phantom.app" target="_blank"><div class="eco-icon">P</div><div class="eco-name">Phantom</div><div class="eco-desc">Wallet</div></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- $FAUCET TOKEN -->
+  <section class="token-section" id="token-section">
+    <div class="container">
+      <div class="token-box glass-panel reveal">
+        <div class="token-info">
+          <div class="token-tag" id="tokenTag">$FAUCET on Solana</div>
+          <h2>The token that funds free Solana</h2>
+          <p>Trading volume and fees from the $FAUCET token on pump.fun directly fund this faucet. Every trade helps someone get their first SOL.</p>
+          <p id="tokenStatus" style="font-size:14px; color:var(--ink-4);">Token not launched yet. Follow for launch updates.</p>
+          <a id="tokenCTA" href="https://x.com/TheSolanaFaucet" target="_blank" class="btn btn-primary" style="margin-top:16px; display:inline-flex;">Follow @TheSolanaFaucet</a>
+        </div>
+        <div class="chart-container" id="chartContainer">
+          <iframe id="geckoterminal-embed" title="GeckoTerminal Embed" src="https://www.geckoterminal.com/solana/pools/89S7oVB4hui8ceJqhHreWB7fcxdthfvoB7z2pfJtpump?embed=1&info=0&swaps=0&light_chart=0&chart_type=market_cap&resolution=1m&bg_color=ffffff" frameborder="0" allow="clipboard-write" allowfullscreen style="width: 100%; min-height: 400px; display: block;"></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+
+<!-- ══════════════════ MODERN FAUCET ══════════════════ -->
+<div class="page" id="page-modern">
+  <div class="container-sm claim-page">
+    <a class="back-link" onclick="go('home')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back
+    </a>
+    <h1>Claim free Solana</h1>
+    <p class="page-sub" id="modernPageSub">Paste your wallet address. Get 0.001 SOL instantly.</p>
+
+    <div class="claim-box glass-panel" id="modernClaimBox" style="position:relative;">
+      <div class="faucet-disabled-overlay" id="modernDisabledOverlay" style="display:none;">
+        <div class="disabled-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+        <h3>Faucet Offline</h3>
+        <p id="modernDisabledMsg">The faucet is currently offline. Follow @TheSolanaFaucet for updates.</p>
+        <a href="https://x.com/TheSolanaFaucet" target="_blank" class="btn btn-primary" style="margin-top:16px;">Follow for updates</a>
+      </div>
+
+      <div class="amount-display">
+        <span class="amount-val" id="modernAmountVal">0.001</span><span class="amount-unit">SOL</span>
+        <span class="amount-label">Per claim</span>
+      </div>
+
+      <form id="modernForm" onsubmit="return false;">
+        <input type="text" name="website" style="position:absolute;top:-999px;opacity:0;" tabindex="-1" autocomplete="off">
+        <input type="hidden" name="human_token" id="m_human_token" value="">
+        <input type="hidden" id="mCaptchaId" value="">
+        <input type="hidden" id="mCaptchaAnswer" value="">
+
+        <div class="form-group">
+          <label class="form-label">Wallet address</label>
+          <input type="text" class="form-input" id="mAddr" name="wallet_address" placeholder="e.g. 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU" spellcheck="false" autocomplete="off">
+        </div>
+
+        <div class="email-verify hidden" id="modernEmailSection">
+          <label class="form-label">Email verification</label>
+          <div class="ev-row">
+            <input type="email" class="form-input" id="mEmail" name="email" placeholder="your@email.com" style="font-family:var(--sans);">
+            <button type="button" class="ev-send" id="mSendCode" onclick="sendModernCode()">Send code</button>
+          </div>
+          <div class="ev-code-row">
+            <input type="text" class="form-input" id="mCode" name="verification_code" placeholder="------" maxlength="6" inputmode="numeric" style="width: 100%;">
+          </div>
+          <div class="ev-status" id="mEvStatus"></div>
+        </div>
+
+        <div class="email-verify locked" id="modernEmailComingSoon">
+          <div class="coming-soon-overlay"><span>Coming Soon</span></div>
+          <label class="form-label">Email verification</label>
+          <div class="ev-row">
+            <input type="email" class="form-input" placeholder="your@email.com" disabled style="font-family:var(--sans);">
+            <button type="button" class="ev-send" disabled>Send code</button>
+          </div>
+          <div class="ev-code-row">
+            <input type="text" class="form-input" placeholder="------" disabled style="width: 100%;">
+          </div>
+        </div>
+
+        <!-- CAPTCHA TRIGGER -->
+        <div class="form-group" id="mCaptchaGroup" style="display:none;">
+          <label class="form-label">Human verification</label>
+          <div class="captcha-trigger-modern" id="mCaptchaTrigger" onclick="openCaptcha('modern')">
+            <span class="ct-text">Click to verify</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+        </div>
+
+        <button type="button" class="btn-claim" id="mClaimBtn" onclick="claimModern()">Claim 0.001 SOL</button>
+      </form>
+    </div>
+
+    <div class="help-note glass-panel">
+      <strong>Need a wallet?</strong> <a href="https://phantom.app" target="_blank">phantom.app</a> or <a href="https://solflare.com" target="_blank">solflare.com</a> — both free.<br>
+      <strong>Cooldown:</strong> One claim every 5 minutes per wallet / IP.
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════ ORIGINAL FAUCET ══════════════════ -->
+<div class="page" id="page-original">
+  <div class="original-bg">
+    <div style="padding: 0 clamp(20px,4vw,48px);">
+      <a class="back-link" onclick="go('home')" style="max-width:1000px; margin:0 auto 24px; display:inline-flex;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back
+      </a>
+    </div>
+
+    <div class="original-wrapper">
+      <div class="oldf">
+
+        <div class="leftNav">
+          <img src="static/faucet.png" alt="Faucet" style="width: 100%; margin-bottom: 16px;" onerror="this.style.display='none'">
+          <p id="oldBalanceDisplay">0 SOL available</p>
+          <ul>
+            <li>Links:</li>
+            <li><a href="https://solana.com/" target="_blank">Solana.com</a></li>
+            <li><a href="https://raydium.io/" target="_blank">Raydium</a></li>
+            <li><a href="https://x.com/TheSolanaFaucet" target="_blank">@TheSolanaFaucet</a></li>
+          </ul>
+        </div>
+
+        <div class="title"><h1>Free Solana</h1></div>
+
+        <div class="main-old">
+          <h2>Get Solana from the Solana Faucet</h2>
+
+          <div id="oldErrorContainer" style="display: none; background: #fef2f2; border: 1px solid #c0392b; color: #c0392b; padding: 10px; margin-bottom: 16px; font-size: 13px; max-width: 480px;"></div>
+
+          <div id="oldConfirmation" class="success-box-old">
+            <h3>Success!</h3>
+            <p><strong id="oldSuccessAmount">0.001 SOL</strong> has been sent to your address.</p>
+            <p>TX: <code><a id="oldTxLink" href="#" target="_blank"><span id="oldTxHash"></span></a></code></p>
+            <p><a onclick="resetOldForm()">Return to faucet</a></p>
+          </div>
+
+          <form id="oldFaucetForm" onsubmit="return false;">
+            <input type="text" name="website" style="position:absolute;top:-999px;opacity:0;" tabindex="-1" autocomplete="off">
+            <input type="hidden" name="human_token" id="o_human_token" value="">
+            <input type="hidden" id="oCaptchaId" value="">
+            <input type="hidden" id="oCaptchaAnswer" value="">
+
+            <p>Enter your Solana address and press Get Some:</p>
+
+            <div class="email-verify-old hidden" id="oldEmailSection">
+              <label for="oEmail">Verify your email:</label>
+              <div style="margin-top:5px;">
+                <input type="email" id="oEmail" name="email" placeholder="your@email.com" autocomplete="off">
+                <button type="button" id="oSendCode" onclick="sendOldCode()">Send Code</button>
+                <span class="ev-old-timer" id="oTimer"></span>
+              </div>
+              <div style="margin-top:5px;">
+                <label for="oCode">Code:</label>
+                <input type="text" id="oCode" name="verification_code" placeholder="123456" maxlength="6" style="width:90px;" inputmode="numeric">
+              </div>
+              <div class="ev-old-status" id="oEvStatus"></div>
+            </div>
+
+            <div class="email-verify-old locked-old" id="oldEmailComingSoon">
+              <div class="coming-soon-overlay-old"><span>Coming Soon</span></div>
+              <label>Verify your email:</label>
+              <div style="margin-top:5px;">
+                <input type="email" placeholder="your@email.com" disabled>
+                <button type="button" disabled>Send Code</button>
+              </div>
+              <div style="margin-top:5px;">
+                <label>Code:</label>
+                <input type="text" placeholder="123456" disabled style="width:90px;">
+              </div>
+            </div>
+
+            <!-- CAPTCHA TRIGGER -->
+            <div class="captcha-trigger-old" id="oCaptchaGroup" style="display:none;">
+                <button type="button" class="o-btn" id="oCaptchaTrigger" onclick="openCaptcha('old')">Verify you are human</button>
+                <span id="oCaptchaStatus" style="color:#080; font-weight:bold; display:none;">Verified [OK]</span>
+            </div>
+
+            <p class="form-row-old">
+              <label for="old_address">Your Solana Address:</label>
+              <input id="old_address" type="text" name="address" maxlength="44" placeholder="e.g. 7xKXt...">
+              <input type="submit" id="oldSubmitBtn" value="Get Some!" onclick="claimOld()">
+            </p>
+          </form>
+
+          <h2>What is Solana?</h2>
+          <p>Solana is a high-speed blockchain. Visit <a href="https://solana.com/">Solana.com</a> for details.</p>
+          <h2>How do I get a wallet?</h2>
+          <p>Download Phantom from <a href="https://phantom.app/">phantom.app</a>.</p>
+          <h2>Want to help?</h2>
+          <p>Send SOL to the faucet wallet: <code><b id="faucetWalletDisplay">[loading...]</b></code></p>
+          <h2>What's the catch?</h2>
+          <p>No catch. I want Solana to succeed. <a href="https://x.com/AragonCrypto" target="_blank">-- AragonCrypto</a></p>
+        </div>
+        <div class="footer-old">
+          Created by <a href="https://x.com/AragonCrypto" target="_blank">AragonCrypto</a> | Inspired by Gavin Andresen's Bitcoin Faucet (2010)
+        </div>
+      </div>
+    </div>
+    <div class="retro-note glass-panel">
+      <h2>Why two faucets?</h2>
+      <p>The original above recreates the <strong>2010 Bitcoin Faucet</strong> by Gavin Andresen. That site gave away 19,700 BTC — over a billion dollars today. We kept it because it's crypto history.</p>
+      <p>Both faucets are <strong>identical in function</strong>: 0.001 SOL, 5-minute cooldown. Pick the one you like.</p>
+      <p style="margin-bottom:0;">-- <a href="https://x.com/AragonCrypto" target="_blank">AragonCrypto</a></p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════ CAPTCHA MODALS ══════════════════ -->
+
+<!-- MODERN MODAL -->
+<div class="captcha-overlay" id="captchaOverlayModern">
+  <div class="c-modal-modern">
+    <div class="c-title-modern">Security Check</div>
+    <div class="c-inst-modern" id="cInstModern">Loading...</div>
+    <div class="c-dropzone-modern" id="cDropModern">Vault</div>
+    <div class="c-options-grid" id="cOptionsModern"></div>
+    <button class="btn-primary" style="margin-top:20px; width:100%; display:none; background:#e0e0e0; color:#888;" id="cSubmitModern" disabled onclick="submitCaptcha()">Verify</button>
+  </div>
+</div>
+
+<!-- OLD MODAL -->
+<div class="captcha-overlay" id="captchaOverlayOld" style="background:rgba(0,0,0,0.6); backdrop-filter:none; -webkit-backdrop-filter:none;">
+  <div class="c-modal-old">
+    <div class="c-old-header">
+      <span>Human_Verification.exe</span>
+      <button class="c-old-close" onclick="closeCaptcha()">X</button>
+    </div>
+    <div class="c-old-body">
+      <p id="cInstOld">Loading...</p>
+      <div class="c-dropzone-old" id="cDropOld">DISK</div>
+      <div id="cOptionsOld" style="margin-bottom: 16px;"></div>
+      <button onclick="submitCaptcha()" id="cSubmitOld" disabled class="oldf o-btn">Verify</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <img src="static/faucet-logo.png" alt="Faucet Logo" class="mark" onerror="this.style.display='none'">
+        <span>Solana Faucet by AragonCrypto</span>
+      </div>
+      <div class="footer-right">
+        <a href="https://github.com/TheSolanaFaucet" target="_blank">GitHub</a>
+        <a href="https://instagram.com/thesolanafaucet" target="_blank">Instagram</a>
+        <a href="https://x.com/thesolanafaucet" target="_blank">X</a>
+        <a href="https://x.com/AragonCrypto" target="_blank">@AragonCrypto</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+/* ═══════════════════════════════════════════════
+   ENGINE — Server-Integrated Frontend
+   ═══════════════════════════════════════════════ */
+
+const API = {
+  config:       'api/config',
+  stats:        'api/stats',
+  claim:        'api/claim',
+  sendCode:     'api/send-code',
+  verifyCode:   'api/verify-code',
+  captcha:      'api/captcha/generate',
+  recentClaims: 'api/recent-claims',
+};
+
+let SERVER = {
+  faucet_active: false, ca_active: false, email_required: false, captcha_required: false,
+  contract_address: '', pool_address: '', trade_url: '',
+  sol_per_claim: 0.001, cooldown_seconds: 300,
+  faucet_wallet: '', faucet_disabled_message: '',
+};
+
+let humanDetected = false;
+let currentPage = 'home';
+let lastScrollY = window.scrollY;
+let modernVerification = { token: '', email_hash: '' };
+let oldVerification = { token: '', email_hash: '' };
+
+['mousemove','touchstart','keydown','scroll'].forEach(e => {
+  document.addEventListener(e, () => { humanDetected = true; }, { once: true });
+});
+
+
+// ═══════════════════════════════════════════════
+// INITIALIZATION 
+// ═══════════════════════════════════════════════
+
+async function initApp() {
+  try {
+    await fetchConfig();
+    await fetchStats();
+  } catch (e) { console.warn('[Faucet] Init error:', e); }
+}
+
+async function fetchConfig() {
+  try {
+    const res = await fetch(API.config);
+    if (!res.ok) throw new Error('Config fetch failed');
+    const data = await res.json();
+    SERVER = { ...SERVER, ...data };
+    applyConfig();
+  } catch (e) {
+    console.warn('[Faucet] Config unavailable, using defaults.');
+    applyConfig();
+  }
+}
+
+async function fetchStats() {
+  try {
+    const res = await fetch(API.stats);
+    if (!res.ok) throw new Error('Stats fetch failed');
+    const data = await res.json();
+    applyStats(data);
+  } catch (e) {
+    applyStats({ total_claims: 0, total_sol_distributed: 0, faucet_balance: 0, unique_wallets: 0 });
+  }
+}
+
+
+// ═══════════════════════════════════════════════
+// APPLY CONFIG 
+// ═══════════════════════════════════════════════
+
+function applyConfig() {
+  const sol = SERVER.sol_per_claim;
+  const cd = Math.floor(SERVER.cooldown_seconds / 60);
+
+  document.getElementById('heroSub').textContent = `${sol} SOL, every ${cd} minutes. No sign-up, no cost. Just paste your wallet and claim.`;
+  document.getElementById('modernAmountVal').textContent = sol;
+  document.getElementById('modernPageSub').textContent = `Paste your wallet address. Get ${sol} SOL instantly.`;
+  document.getElementById('mClaimBtn').textContent = `Claim ${sol} SOL`;
+
+  const walletEl = document.getElementById('faucetWalletDisplay');
+  walletEl.textContent = SERVER.faucet_wallet || '[not configured]';
+
+  // Email Config
+  if (SERVER.email_required) {
+    document.getElementById('modernEmailSection').classList.remove('hidden');
+    document.getElementById('modernEmailComingSoon').style.display = 'none';
+    document.getElementById('oldEmailSection').classList.remove('hidden');
+    document.getElementById('oldEmailComingSoon').style.display = 'none';
+  } else {
+    document.getElementById('modernEmailSection').classList.add('hidden');
+    document.getElementById('modernEmailComingSoon').style.display = '';
+    document.getElementById('oldEmailSection').classList.add('hidden');
+    document.getElementById('oldEmailComingSoon').style.display = '';
+  }
+
+  // Captcha Config
+  if (SERVER.captcha_required) {
+    document.getElementById('mCaptchaGroup').style.display = 'block';
+    document.getElementById('oCaptchaGroup').style.display = 'flex';
+  } else {
+    document.getElementById('mCaptchaGroup').style.display = 'none';
+    document.getElementById('oCaptchaGroup').style.display = 'none';
+  }
+
+  // Offline Overlay
+  const modernOverlay = document.getElementById('modernDisabledOverlay');
+  if (!SERVER.faucet_active) {
+    modernOverlay.style.display = 'flex';
+    document.getElementById('modernDisabledMsg').textContent = SERVER.faucet_disabled_message || 'The faucet is currently offline.';
+  } else {
+    modernOverlay.style.display = 'none';
+  }
+
+  // Banner & Tokens
+  if (SERVER.ca_active && SERVER.trade_url) {
+    document.getElementById('bannerText').textContent = 'The $Faucet Token is live!';
+    const link = document.getElementById('bannerLink');
+    link.textContent = 'Trade it here!';
+    link.href = SERVER.trade_url;
+  } else {
+    document.getElementById('bannerText').textContent = 'The $Faucet Token has not been launched yet.';
+    const link = document.getElementById('bannerLink');
+    link.textContent = 'Follow for updates';
+    link.href = 'https://x.com/TheSolanaFaucet';
+  }
+
+  if (SERVER.ca_active && SERVER.contract_address) {
+    document.getElementById('tokenTag').textContent = '$FAUCET — ' + SERVER.contract_address.slice(0, 8) + '...';
+    document.getElementById('tokenStatus').innerHTML = '<span style="color:var(--green-muted); font-weight:600;">Token is live!</span>';
+    const cta = document.getElementById('tokenCTA');
+    cta.textContent = 'Trade $FAUCET';
+    cta.href = SERVER.trade_url || '#';
+  }
+
+  if (SERVER.ca_active && SERVER.pool_address) {
+    const iframe = document.getElementById('geckoterminal-embed');
+    iframe.src = `https://www.geckoterminal.com/solana/pools/${SERVER.pool_address}?embed=1&info=0&swaps=0&light_chart=0&chart_type=market_cap&resolution=1m&bg_color=ffffff`;
+  }
+
+  document.querySelectorAll('.mq-amount').forEach(el => el.textContent = sol);
+  document.querySelectorAll('.mq-cooldown').forEach(el => el.textContent = cd);
+}
+
+function applyStats(data) {
+  animateCounter('stat-claims', data.total_claims || 0);
+  animateCounter('stat-sol', data.total_sol_distributed || 0, 3);
+  document.getElementById('stat-cooldown').textContent = Math.floor(SERVER.cooldown_seconds / 60) + 'min';
+  const bal = data.faucet_balance || 0;
+  document.getElementById('stat-balance').textContent = bal > 0 ? bal.toFixed(2) : '0';
+  document.getElementById('liveClaimCount').textContent = (data.total_claims || 0).toLocaleString();
+  document.getElementById('oldBalanceDisplay').textContent = (bal > 0 ? bal.toFixed(2) : '0') + ' SOL available';
+}
+
+function animateCounter(id, target, decimals = 0) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const dur = 1500;
+  const start = performance.now();
+  function tick(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    const current = target * ease;
+    if (decimals > 0) el.textContent = current.toFixed(decimals);
+    else el.textContent = Math.round(current).toLocaleString();
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+
+// ═══════════════════════════════════════════════
+// TOASTS & CONFETTI
+// ═══════════════════════════════════════════════
+
+function showToast(msg, type = 'normal') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    toast.addEventListener('animationend', () => toast.remove());
+  }, 4000);
+}
+
+function showOldError(msg) {
+  const errDiv = document.getElementById('oldErrorContainer');
+  errDiv.style.display = 'block';
+  errDiv.textContent = 'Error: ' + msg;
+}
+
+function fireConfetti() {
+  const colors = ['#14F195', '#9945FF'];
+  for (let i = 0; i < 70; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti-piece';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    c.style.animationDelay = Math.random() * 0.5 + 's';
+    c.style.setProperty('--drift', (Math.random() - 0.5) * 200 + 'px');
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 4000);
+  }
+}
+
+function closeBanner() {
+  const banner = document.getElementById('tokenBanner');
+  banner.style.marginTop = `-${banner.offsetHeight}px`;
+  banner.style.opacity = '0';
+  setTimeout(() => banner.style.display = 'none', 400);
+}
+
+
+// ═══════════════════════════════════════════════
+// CAPTCHA ENGINE (DRAG & DROP + TAP FALLBACK)
+// ═══════════════════════════════════════════════
+let captchaState = { id: null, selectedAnswer: null, theme: 'modern' };
+
+async function openCaptcha(theme) {
+  captchaState.theme = theme;
+  captchaState.selectedAnswer = null;
+  
+  const overlayId = theme === 'modern' ? 'captchaOverlayModern' : 'captchaOverlayOld';
+  document.getElementById(overlayId).classList.add('active');
+  
+  try {
+    const res = await fetch(API.captcha);
+    const data = await res.json();
+    if(data.success) {
+      captchaState.id = data.challenge_id;
+      renderCaptcha(data, theme);
+    } else {
+      if (theme === 'modern') showToast("Error loading captcha", "error");
+      else showOldError("Error loading captcha");
+      closeCaptcha();
+    }
+  } catch(e) { 
+    if (theme === 'modern') showToast("Network error loading captcha", "error");
+    else showOldError("Network error loading captcha");
+    closeCaptcha(); 
+  }
+}
+
+function closeCaptcha() {
+  document.getElementById('captchaOverlayModern').classList.remove('active');
+  document.getElementById('captchaOverlayOld').classList.remove('active');
+}
+
+function renderCaptcha(data, theme) {
+  const isMod = theme === 'modern';
+  const instEl = document.getElementById(isMod ? 'cInstModern' : 'cInstOld');
+  const optsBox = document.getElementById(isMod ? 'cOptionsModern' : 'cOptionsOld');
+  const dropBox = document.getElementById(isMod ? 'cDropModern' : 'cDropOld');
+  const btn = document.getElementById(isMod ? 'cSubmitModern' : 'cSubmitOld');
+  
+  instEl.innerHTML = data.instruction + " <br><small>(Drag or Tap)</small>";
+  optsBox.innerHTML = '';
+  dropBox.innerHTML = isMod ? 'Vault' : 'DISK';
+  dropBox.classList.remove('drag-over');
+  dropBox.style.borderColor = '';
+  btn.disabled = true;
+  
+  if(isMod) { 
+    btn.style.background = '#e0e0e0'; btn.style.color = '#888'; btn.style.display = 'block'; 
+  }
+  
+  dropBox.ondragover = (e) => { e.preventDefault(); dropBox.classList.add('drag-over'); };
+  dropBox.ondragleave = () => dropBox.classList.remove('drag-over');
+  dropBox.ondrop = (e) => {
+    e.preventDefault();
+    dropBox.classList.remove('drag-over');
+    const droppedId = e.dataTransfer.getData('text/plain');
+    if (droppedId) {
+      const opt = data.options.find(o => o.id === droppedId);
+      if(opt) handleSelection(droppedId, theme, opt.name);
+    }
+  };
+
+  dropBox.onclick = () => {
+    if(captchaState.selectedAnswer) {
+      const opt = data.options.find(o => o.id === captchaState.selectedAnswer);
+      if(opt) handleSelection(captchaState.selectedAnswer, theme, opt.name);
+    }
+  };
+
+  data.options.forEach(opt => {
+    const el = document.createElement('div');
+    el.className = isMod ? 'c-draggable' : 'c-old-draggable';
+    el.textContent = opt.name;
+    el.draggable = true;
+    
+    el.ondragstart = (e) => {
+      e.dataTransfer.setData('text/plain', opt.id);
+      captchaState.selectedAnswer = opt.id;
+    };
+    
+    el.onclick = () => {
+      document.querySelectorAll(isMod ? '.c-draggable' : '.c-old-draggable').forEach(x => x.classList.remove('selected-tap'));
+      el.classList.add('selected-tap');
+      captchaState.selectedAnswer = opt.id;
+    };
+    
+    optsBox.appendChild(el);
+  });
+}
+
+function handleSelection(id, theme, name) {
+  captchaState.selectedAnswer = id;
+  const isMod = theme === 'modern';
+  const dropBox = document.getElementById(isMod ? 'cDropModern' : 'cDropOld');
+  const btn = document.getElementById(isMod ? 'cSubmitModern' : 'cSubmitOld');
+  
+  dropBox.innerHTML = `<strong>${name}</strong>`;
+  dropBox.style.borderColor = isMod ? 'var(--sol-green)' : '#080';
+  
+  btn.disabled = false;
+  if(isMod) { btn.style.background = 'var(--ink)'; btn.style.color = 'var(--white)'; }
+  
+  setTimeout(submitCaptcha, 400);
+}
+
+function submitCaptcha() {
+  if(!captchaState.selectedAnswer) return;
+  const isMod = captchaState.theme === 'modern';
+  
+  if (isMod) {
+    document.getElementById('mCaptchaId').value = captchaState.id;
+    document.getElementById('mCaptchaAnswer').value = captchaState.selectedAnswer;
+    const trig = document.getElementById('mCaptchaTrigger');
+    trig.classList.add('verified');
+    trig.querySelector('.ct-text').textContent = 'Verified ✓';
+  } else {
+    document.getElementById('oCaptchaId').value = captchaState.id;
+    document.getElementById('oCaptchaAnswer').value = captchaState.selectedAnswer;
+    document.getElementById('oCaptchaTrigger').style.display = 'none';
+    document.getElementById('oCaptchaStatus').style.display = 'inline';
+  }
+  
+  closeCaptcha();
+}
+
+
+// ═══════════════════════════════════════════════
+// MODERN FAUCET — EMAIL VERIFICATION
+// ═══════════════════════════════════════════════
+let modernCodeTimer = null;
+
+async function sendModernCode() {
+  const email = document.getElementById('mEmail').value.trim();
+  const btn = document.getElementById('mSendCode');
+  const status = document.getElementById('mEvStatus');
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    showToast('Enter a valid email.', 'error'); return;
+  }
+  btn.disabled = true; btn.textContent = 'Sending...';
+
+  try {
+    const res = await fetch(API.sendCode, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(data.message || 'Code sent!', 'success');
+      status.className = 'ev-status ok';
+      status.textContent = data.demo_code ? 'Demo code: ' + data.demo_code : 'Check your email.';
+      let remaining = 60;
+      clearInterval(modernCodeTimer);
+      modernCodeTimer = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+          clearInterval(modernCodeTimer);
+          btn.disabled = false; btn.textContent = 'Resend';
+        } else btn.textContent = 'Resend in ' + remaining + 's';
+      }, 1000);
+    } else {
+      showToast(data.message || 'Failed to send code.', 'error');
+      btn.disabled = false; btn.textContent = 'Send code';
+    }
+  } catch (e) {
+    showToast('Network error. Try again.', 'error');
+    btn.disabled = false; btn.textContent = 'Send code';
+  }
+}
+
+async function verifyModernCode() {
+  const email = document.getElementById('mEmail').value.trim();
+  const code = document.getElementById('mCode').value.trim();
+  if (!email || !code) return false;
+  try {
+    const res = await fetch(API.verifyCode, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      modernVerification.token = data.verification_token;
+      modernVerification.email_hash = data.email_hash;
+      return true;
+    } else {
+      showToast(data.message || 'Verification failed.', 'error'); return false;
+    }
+  } catch (e) {
+    showToast('Network error during verification.', 'error'); return false;
+  }
+}
+
+
+// ═══════════════════════════════════════════════
+// MODERN FAUCET — CLAIM
+// ═══════════════════════════════════════════════
+async function claimModern() {
+  if (!SERVER.faucet_active) { showToast(SERVER.faucet_disabled_message || 'Faucet is offline.', 'error'); return; }
+
+  const form = document.getElementById('modernForm');
+  const addr = document.getElementById('mAddr').value.trim();
+  const btn = document.getElementById('mClaimBtn');
+  const cId = document.getElementById('mCaptchaId').value;
+  const cAns = document.getElementById('mCaptchaAnswer').value;
+
+  const honeypot = form.querySelector('[name="website"]');
+  if (honeypot && honeypot.value !== '') return;
+  if (!humanDetected) { showToast('Please interact with the page first.', 'error'); return; }
+  const humanToken = 'V-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+
+  if (!addr || addr.length < 32 || addr.length > 44) {
+    showToast('Enter a valid Solana address.', 'error'); return;
+  }
+
+  if (SERVER.email_required) {
+    const code = document.getElementById('mCode').value.trim();
+    if (!code) { showToast('Enter the verification code.', 'error'); return; }
+    const verified = await verifyModernCode();
+    if (!verified) return;
+  }
+
+  if (SERVER.captcha_required && (!cId || !cAns)) {
+    showToast("Please complete the human verification.", "error");
+    return openCaptcha('modern');
+  }
+
+  btn.disabled = true; btn.textContent = 'Sending SOL...';
+
+  try {
+    const body = { wallet_address: addr, human_token: humanToken, website: '', captcha_id: cId, captcha_answer: cAns };
+    if (SERVER.email_required) {
+      body.verification_token = modernVerification.token;
+      body.email_hash = modernVerification.email_hash;
+    }
+
+    const res = await fetch(API.claim, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast(data.message || 'SOL sent!', 'success');
+      fireConfetti();
+      modernVerification = { token: '', email_hash: '' };
+      document.getElementById('mCode').value = '';
+      
+      // Reset Captcha
+      document.getElementById('mCaptchaId').value = '';
+      document.getElementById('mCaptchaAnswer').value = '';
+      document.getElementById('mCaptchaTrigger').classList.remove('verified');
+      document.getElementById('mCaptchaTrigger').querySelector('.ct-text').textContent = 'Click to verify';
+
+      startModernCooldown(SERVER.cooldown_seconds);
+      fetchStats();
+    } else {
+      if (data.cooldown_remaining) {
+        showToast(data.message, 'error');
+        startModernCooldown(data.cooldown_remaining);
+      } else {
+        showToast(data.message || 'Claim failed.', 'error');
+      }
+      btn.disabled = false; btn.textContent = `Claim ${SERVER.sol_per_claim} SOL`;
+      
+      // If captcha expired/failed, force retry
+      if(SERVER.captcha_required && data.message && data.message.toLowerCase().includes('captcha')) {
+         document.getElementById('mCaptchaTrigger').classList.remove('verified');
+         document.getElementById('mCaptchaTrigger').querySelector('.ct-text').textContent = 'Click to verify';
+      }
+    }
+  } catch (e) {
+    showToast('Network error. Try again.', 'error');
+    btn.disabled = false; btn.textContent = `Claim ${SERVER.sol_per_claim} SOL`;
+  }
+}
+
+let modernCooldownTimer = null;
+function startModernCooldown(seconds) {
+  const btn = document.getElementById('mClaimBtn');
+  let remaining = seconds;
+  btn.disabled = true; btn.classList.add('is-cooldown');
+  clearInterval(modernCooldownTimer);
+  modernCooldownTimer = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(modernCooldownTimer);
+      btn.disabled = false; btn.textContent = `Claim ${SERVER.sol_per_claim} SOL`;
+      btn.classList.remove('is-cooldown');
+    } else {
+      const m = Math.floor(remaining / 60); const s = remaining % 60;
+      btn.textContent = `Cooldown: ${m}:${String(s).padStart(2, '0')}`;
+    }
+  }, 1000);
+}
+
+
+// ═══════════════════════════════════════════════
+// OLD FAUCET — EMAIL VERIFICATION
+// ═══════════════════════════════════════════════
+let oldCodeTimer = null;
+
+async function sendOldCode() {
+  const email = document.getElementById('oEmail').value.trim();
+  const btn = document.getElementById('oSendCode');
+  const status = document.getElementById('oEvStatus');
+
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    status.className = 'ev-old-status err'; status.textContent = 'Enter a valid email.'; return;
+  }
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(API.sendCode, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      status.className = 'ev-old-status ok';
+      status.textContent = data.demo_code ? 'Code sent! (demo: ' + data.demo_code + ')' : 'Code sent!';
+      let remaining = 60;
+      clearInterval(oldCodeTimer);
+      oldCodeTimer = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+          clearInterval(oldCodeTimer); document.getElementById('oTimer').textContent = '';
+          btn.disabled = false; btn.textContent = 'Resend';
+        } else document.getElementById('oTimer').textContent = remaining + 's';
+      }, 1000);
+    } else {
+      status.className = 'ev-old-status err'; status.textContent = data.message || 'Failed.'; btn.disabled = false;
+    }
+  } catch (e) {
+    status.className = 'ev-old-status err'; status.textContent = 'Network error.'; btn.disabled = false;
+  }
+}
+
+async function verifyOldCode() {
+  const email = document.getElementById('oEmail').value.trim();
+  const code = document.getElementById('oCode').value.trim();
+  if (!email || !code) return false;
+  try {
+    const res = await fetch(API.verifyCode, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      oldVerification.token = data.verification_token;
+      oldVerification.email_hash = data.email_hash;
+      return true;
+    } else {
+      showOldError(data.message || 'Verification failed.'); return false;
+    }
+  } catch (e) {
+    showOldError('Network error during verification.'); return false;
+  }
+}
+
+
+// ═══════════════════════════════════════════════
+// OLD FAUCET — CLAIM
+// ═══════════════════════════════════════════════
+async function claimOld() {
+  const form = document.getElementById('oldFaucetForm');
+  const addr = document.getElementById('old_address').value.trim();
+  const submit = document.getElementById('oldSubmitBtn');
+  const cId = document.getElementById('oCaptchaId').value;
+  const cAns = document.getElementById('oCaptchaAnswer').value;
+
+  document.getElementById('oldErrorContainer').style.display = 'none';
+
+  if (!SERVER.faucet_active) { showOldError(SERVER.faucet_disabled_message || 'Faucet is offline.'); return; }
+
+  const honeypot = form.querySelector('[name="website"]');
+  if (honeypot && honeypot.value !== '') return;
+  if (!humanDetected) { showOldError('Please interact with the page first.'); return; }
+
+  const humanToken = 'V-' + Date.now();
+  if (!addr || addr.length < 32 || addr.length > 44) { showOldError('Enter a valid Solana address.'); return; }
+
+  if (SERVER.email_required) {
+    const code = document.getElementById('oCode').value.trim();
+    if (!code) { showOldError('Enter the verification code first.'); return; }
+    const verified = await verifyOldCode();
+    if (!verified) return;
+  }
+
+  if (SERVER.captcha_required && (!cId || !cAns)) {
+    showOldError("Please complete the human verification.");
+    return openCaptcha('old');
+  }
+
+  submit.value = 'Sending...'; submit.disabled = true;
+
+  try {
+    const body = { wallet_address: addr, human_token: humanToken, website: '', captcha_id: cId, captcha_answer: cAns };
+    if (SERVER.email_required) {
+      body.verification_token = oldVerification.token;
+      body.email_hash = oldVerification.email_hash;
+    }
+
+    const res = await fetch(API.claim, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById('oldSuccessAmount').textContent = data.amount + ' SOL';
+      document.getElementById('oldTxHash').textContent = data.tx_signature;
+      document.getElementById('oldTxLink').href = data.tx_link || '#';
+      document.getElementById('oldFaucetForm').style.display = 'none';
+      document.getElementById('oldConfirmation').style.display = 'block';
+
+      oldVerification = { token: '', email_hash: '' };
+      
+      // Reset Captcha
+      document.getElementById('oCaptchaId').value = '';
+      document.getElementById('oCaptchaAnswer').value = '';
+      document.getElementById('oCaptchaStatus').style.display = 'none';
+      document.getElementById('oCaptchaTrigger').style.display = 'inline-block';
+
+      fetchStats();
+    } else {
+      showOldError(data.message || 'Claim failed.');
+      // If captcha failed
+      if(SERVER.captcha_required && data.message && data.message.toLowerCase().includes('captcha')) {
+         document.getElementById('oCaptchaStatus').style.display = 'none';
+         document.getElementById('oCaptchaTrigger').style.display = 'inline-block';
+      }
+    }
+  } catch (e) {
+    showOldError('Network error. Try again.');
+  }
+
+  submit.value = 'Get Some!'; submit.disabled = false;
+}
+
+function resetOldForm() {
+  document.getElementById('oldConfirmation').style.display = 'none';
+  document.getElementById('oldFaucetForm').style.display = 'block';
+  document.getElementById('oldFaucetForm').reset();
+  document.getElementById('oEvStatus').textContent = '';
+  document.getElementById('oldErrorContainer').style.display = 'none';
+}
+
+
+// ═══════════════════════════════════════════════
+// ROUTING
+// ═══════════════════════════════════════════════
+
+function go(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  history.pushState(null, '', '#' + page);
+  currentPage = page;
+  document.getElementById('mainNav').classList.remove('hidden');
+  lastScrollY = window.scrollY;
+
+  setTimeout(() => {
+    document.querySelectorAll('.page.active .reveal').forEach(el => observer.observe(el));
+  }, 50);
+}
+
+function scrollToToken() {
+  if (currentPage !== 'home') {
+    go('home');
+    setTimeout(() => { document.getElementById('token-section').scrollIntoView({ behavior: 'smooth' }); }, 100);
+  } else {
+    document.getElementById('token-section').scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+window.addEventListener('popstate', () => {
+  const h = location.hash.replace('#', '') || 'home';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('page-' + h);
+  if (el) { el.classList.add('active'); currentPage = h; }
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  const h = location.hash.replace('#', '');
+  if (h && document.getElementById('page-' + h)) go(h);
+  initApp();
+});
+
+
+// ═══════════════════════════════════════════════
+// NAV SCROLL & OBSERVERS
+// ═══════════════════════════════════════════════
+
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('mainNav');
+  const dy = window.scrollY - lastScrollY;
+  if (currentPage === 'original') {
+    if (dy > 4 && window.scrollY > 80) nav.classList.add('hidden');
+    else if (dy < -4) nav.classList.remove('hidden');
+  } else {
+    nav.classList.remove('hidden');
+  }
+  lastScrollY = window.scrollY;
+}, { passive: true });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+
+// ═══════════════════════════════════════════════
+// STATS REFRESH
+// ═══════════════════════════════════════════════
+setInterval(() => {
+  if (currentPage === 'home') fetchStats();
+}, 30000);
+
+</script>
+</body>
+</html>
